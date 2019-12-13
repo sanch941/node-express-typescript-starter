@@ -9,6 +9,7 @@ import multer from 'multer';
 import { notFound, register, login, resetPassword, changePassword, isEmailUnique, registerValidate, loginValidate, changePasswordValidate, resetPaswordValidate, isEmailUniqueValidate, userInfo, logout, verifyToken, deleteUser, changeUsername, changeUsernameValidate, uploadImage } from './controllers';
 import { checkUserAgent } from './util';
 import { checkToken, errorHandler } from './middlewares';
+import { multerStorage } from './bootstrap';
 
 // Create Express server
 const app = express();
@@ -29,7 +30,7 @@ const connectToDb = async (): Promise<void> => {
 };
 connectToDb();
 
-const upload = multer({ dest: 'static/uploads/' });
+const upload = multer({ storage: multerStorage });
 
 app.set('port', process.env.PORT || 3001);
 app.set('views', path.join(__dirname, '../views'));
