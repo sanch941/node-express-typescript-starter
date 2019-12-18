@@ -20,7 +20,8 @@
         "restore": "mongorestore -d boom-brains --drop dumps/boom-brains/",
         "copy-static-assets": "rm -rf dist/public && ts-node copyStaticAssets.ts",
         "debug": "npm run build && npm run watch-debug",
-        "serve-debug": "nodemon --inspect dist/server.js"
+        "serve-debug": "nodemon --inspect dist/server.js",
+        "fresh-uploads": "cd src/uploads && rm -r * && mkdir optimized original"
     },
     "dependencies": {
         "@types/connect-busboy": "0.0.2",

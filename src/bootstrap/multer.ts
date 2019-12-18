@@ -1,5 +1,4 @@
 import multer from 'multer';
-import path from 'path';
 
 let pathTo: string;
 // В зависимости от ос изменить путь
@@ -14,10 +13,9 @@ switch (process.platform) {
         break;
 }
 
-// path.extname убирает все что было до точки, оставляя только .jpg, .png. Документация - https://nodejs.org/api/path.html#path_path_extname_path
-const fileName = ({ fieldname, originalname }: MulterFileToUpload) => {
+const fileName = ({ fieldname }: MulterFileToUpload) => {
 
-    return `original-${fieldname}-${Date.now() + path.extname(originalname)}`;
+    return `original-${fieldname}-${Date.now()}`;
 };
 
 // Конфиг, куда падает файл и название файла

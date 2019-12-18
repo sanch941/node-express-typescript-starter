@@ -4,6 +4,7 @@ import { validation } from '../../middlewares';
 import gm from 'gm';
 import async from 'async';
 import fs from 'fs';
+import nodePath from 'path';
 
 const _uploadImage = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
@@ -14,7 +15,7 @@ const _uploadImage = async (req: Request, res: Response, next: NextFunction): Pr
         // otherInfo = otherInfo.map((item: any) => JSON.parse(item));               
 
         // passOver похоже на next из express middleware - продолжает цикл
-        async.each(files, ({ path, destination, filename }: MulterFileToUpload, passOver) => {
+        async.each(files, ({ path, destination, filename, originalname }: MulterFileToUpload, passOver) => {
 
             const resizeImage = (width: number = null, height: number = null): Promise<any> => {
                 return new Promise((resolve, reject) => {
@@ -24,18 +25,36 @@ const _uploadImage = async (req: Request, res: Response, next: NextFunction): Pr
                     // Если нет папки с названием ширины,  то создать ее
                     !fs.existsSync(optimizedPathFolder) && fs.mkdirSync(optimizedPathFolder);
                     // Убрать мусор из картинки и изменить ее размер
-                    gm(path).noProfile().resize(width, height).write(optimizedPathFile, (err) => {
-                        if (err) return reject(err);
 
+                    const configure = (type: string): Promise<any> => {
+                        return new Promise((resolve2, reject2) => {
+
+                            gm(path).noProfile().resize(width, height).toBuffer(type, () => ({})).write(optimizedPathFile + '.' + type, (err) => {
+                                if (err) return reject2(err);
+
+                                resolve2();
+                            });
+                        });
+                    };
+
+                    // path.extname убирает все что было до точки, оставляя только .jpg, .png. Документация - https://nodejs.org/api/path.html#path_path_extname_path
+                    const originalNameWithoutDot = nodePath.extname(originalname).split('.').join('');
+
+                    const allConfigured = [configure('webp'), configure(originalNameWithoutDot)];
+
+                    Promise.all(allConfigured).then(() => {
                         resolve();
+                    }).catch((err) => {
+                        reject(err);
                     });
                 });
             };
 
-            const promise80x80 = resizeImage(80);
-            const promise120x120 = resizeImage(120);
 
-            const allResizePromisses = [promise80x80, promise120x120];
+            const allResizePromisses = [
+                resizeImage(1920), resizeImage(1600), resizeImage(1366),
+                resizeImage(1024), resizeImage(768), resizeImage(640)
+            ];
 
             Promise.all(allResizePromisses).then(() => {
                 passOver();
